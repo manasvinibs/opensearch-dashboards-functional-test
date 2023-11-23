@@ -29,7 +29,6 @@ describe('date_nanos_mixed', () => {
     cy.setAdvancedSetting({
       defaultIndex: 'timestamp-*',
     });
-    cy.wait(3000);
     miscUtils.visitPage('app/data-explorer/discover#/');
     cy.waitForLoader();
 

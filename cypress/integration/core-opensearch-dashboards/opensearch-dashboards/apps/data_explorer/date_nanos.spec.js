@@ -8,6 +8,7 @@ import {
   MiscUtils,
 } from '@opensearch-dashboards-test/opensearch-dashboards-test-library';
 import { CURRENT_TENANT } from '../../../../../utils/commands';
+
 const testFixtureHandler = new TestFixtureHandler(
   cy,
   Cypress.env('openSearchUrl')
@@ -31,7 +32,6 @@ describe('date_nanos', () => {
     cy.setAdvancedSetting({
       defaultIndex: 'date-nanos',
     });
-    cy.wait(3000);
     miscUtils.visitPage('app/data-explorer/discover#/');
     cy.waitForLoader();
 

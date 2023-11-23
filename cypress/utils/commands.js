@@ -399,18 +399,20 @@ Cypress.Commands.add('deleteIndexPattern', (id, options = {}) =>
 
 Cypress.Commands.add('setAdvancedSetting', (changes) => {
   const url = `${Cypress.config().baseUrl}/api/opensearch-dashboards/settings`;
-  cy.intercept('POST', '/api/opensearch-dashboards/settings').as(
-    'getAdvancedSetting'
-  );
   cy.log('setAdvancedSetting')
     .request({
       method: 'POST',
       url,
+      qs: Cypress.env('SECURITY_ENABLED')
+        ? {
+            security_tenant: CURRENT_TENANT.defaultTenant,
+          }
+        : {},
       headers: {
         'content-type': 'application/json;charset=UTF-8',
         'osd-xsrf': true,
       },
-      body: { changes: changes },
+      body: { changes },
     })
     .then((response) => {
       if (response.body.errors) {
@@ -418,7 +420,6 @@ Cypress.Commands.add('setAdvancedSetting', (changes) => {
         throw new Error('Setting advanced setting failed');
       }
     });
-  cy.wait('@getAdvancedSetting');
 });
 
 Cypress.Commands.add(

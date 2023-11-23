@@ -2,7 +2,9 @@
  * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
+
 import { CURRENT_TENANT } from '../../../../../utils/commands';
+
 /// <reference types="cypress" />
 
 describe('Before', () => {
