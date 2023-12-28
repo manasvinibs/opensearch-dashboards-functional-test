@@ -22,5 +22,5 @@ jobs:
         env:
           GITHUB_SECRET_TOKEN: ${{ secrets.REMOTE_GITHUB_PAT }}
         run: |
-          ./remoteCypress.sh -r "manasvinibs/OpenSearch-Dashboards" -w "remote_cypress_workflow.yml" -o "tes_OS_URL" -d "test_OSD_URL" -b "POC"
+          ./integtest.sh
 

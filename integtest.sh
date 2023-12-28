@@ -100,17 +100,84 @@ echo -e "Test Files List:"
 echo $TEST_FILES | tr ',' '\n'
 echo "BROWSER_PATH: $BROWSER_PATH"
 
+# Array to store remote cypress workflow background processes IDs when run in parallel
+declare -a all_process_pids
+
+run_remote_cypress() {
+    local repo="$1"
+    local workflow_name="$2"
+    local os_url="$3"
+    local osd_url="$4"
+    local branch_ref="$5"
+
+    # Call the remoteCypress.sh script with the required arguments
+    source remoteCypress.sh -r "$repo" -w "$workflow_name" -o "$os_url" -d "$osd_url" -b "$branch_ref" &
+    bg_process_pid=$!
+    echo "PID for the repo $repo is : $bg_process_pid"
+    all_process_pids+=($bg_process_pid)
+}
+
+# Read inputs from the manifest file using jq
+REMOTE_MANIFEST_FILE="remote_cypress_manifest.json"
+
+# Parse the JSON file using jq and iterate over the components array
+components=$(jq -c '.components[]' "$REMOTE_MANIFEST_FILE")
+release_version=$(jq -r '.build.version' "$REMOTE_MANIFEST_FILE")
+echo "Components: $components"
+echo "Release version: $release_version"
+
+for component in $components; do
+    echo "Processing for the component: $component"
+
+    repo=$(echo "$component" | jq -r '.["repository"]')
+    workflow_name=$(echo "$component" | jq -r '.["workflow-name"]')
+    os_url=$(echo "$component" | jq -r '.["opensearch"]')
+    osd_url=$(echo "$component" | jq -r '.["opensearch-dashboards"]')
+    branch_ref=$(echo "$component" | jq -r '.["ref"]')
+
+    # Set default values if the opensearch and opensearch-dahsboards are not set in the manifest
+    os_url=${os_url:-https://artifacts.opensearch.org/releases/bundle/opensearch/$release_version/opensearch-$release_version-linux-x64.tar.gz}
+    osd_url=${osd_url:-https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/$release_version/opensearch-dashboards-$release_version-linux-x64.tar.gz}
+
+    echo "repo: $repo"
+    echo "workflow_name: $workflow_name"
+    echo "os_url: $os_url"
+    echo "osd_url: $osd_url"
+    echo "branch_ref: $branch_ref"
+
+    # Call the function for each component
+    run_remote_cypress "$repo" "$workflow_name" "$os_url" "$osd_url" "$branch_ref" 
+done
+
+# Wait for all processes to finish
+wait "${all_process_pids[@]}"
+
+log_directory="/tmp/logfiles"
+
+# Read log files in tmp folder and put the output to CI
+find "$log_directory" -type f -name "*.txt" | while IFS= read -r log_file; do
+    if [ -f "$log_file" ]; then
+        echo "Log content for file: $log_file"
+        cat "$log_file"
+    else
+        echo "Log file not found: $log_file"
+    fi
+done
+
+# Delete the temporary log files and folder after writing to CI
+rm -rf "$log_directory"
+
 ## WARNING: THIS LOGIC NEEDS TO BE THE LAST IN THIS FILE! ##
 # Cypress returns back the test failure count in the error code
 # The CI outputs the error code as test failure count.
 #
 # We need to ensure the cypress tests are the last execute process to
 # the error code gets passed to the CI.
-if [ $SECURITY_ENABLED = "true" ]
-then
-   echo "run security enabled tests"
-   yarn cypress:run-with-security --browser "$BROWSER_PATH" --spec "$TEST_FILES"
+
+if [ $SECURITY_ENABLED = "true" ]; then
+    echo "Running security enabled tests"
+    yarn cypress:run-with-security --browser "$BROWSER_PATH" --spec "$TEST_FILES"
 else
-   echo "run security disabled tests"
-   yarn cypress:run-without-security --browser "$BROWSER_PATH" --spec "$TEST_FILES"
+    echo "Running security disabled tests"
+    yarn cypress:run-without-security --browser "$BROWSER_PATH" --spec "$TEST_FILES"
 fi
