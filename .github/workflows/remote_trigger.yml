@@ -1,0 +1,15 @@
+name: Trigger Remote Cypress Workflow -1
+
+on:
+  push:
+    branches: [ '**' ]
+jobs:
+  trigger-cypress:
+    runs-on: ubuntu-latest
+    name: Run integtest sscript
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+    
