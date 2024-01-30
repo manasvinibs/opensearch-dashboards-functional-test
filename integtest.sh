@@ -111,9 +111,14 @@ echo "BROWSER_PATH: $BROWSER_PATH"
 
 # Read inputs from the manifest file for remote cypress orchestrator
 REMOTE_MANIFEST_FILE="remote_cypress_manifest.json"
+export GITHUB_TOKEN=$GITHUB_SECRET_TOKEN
 
 # PID file to store remote cypress workflow background processes IDs when run in parallel
 pid_file="process_ids.txt"
+
+echo "CWD : $(pwd)"
+ls -l
+node cypress/utils/octokit_workflow.js
 
 run_remote_cypress() {
     local repo="$1"

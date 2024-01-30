@@ -1,6 +1,8 @@
 name: Trigger Remote Cypress Workflow
 
 on:
+  push:
+    branches: [ '**' ]
   workflow_dispatch:
     inputs:
       repo:
@@ -19,7 +21,7 @@ on:
         description: 'Test branch name or commit reference id'
         required: true
 env:
-  GITHUB_SECRET_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_SECRET_TOKEN: ${{ secrets.ORCHESTRATOR_APP_SECRET_KEY }}
 jobs:
   trigger-cypress:
     runs-on: ubuntu-latest
@@ -34,3 +36,8 @@ jobs:
         run: |
           echo "Executing remoteCypress script for workflow_dispatch event"
           ./remoteCypress.sh -r "${{ github.event.inputs.repo }}" -w "${{ github.event.inputs.workflow_name }}" -o "${{ github.event.inputs.os_url }}" -d "${{ github.event.inputs.osd_url }}" -b "${{ github.event.inputs.branch_ref }}"
+      
+      - name: Run Bash Script
+        run: |
+          echo "Executing remoteCypress script for workflow_dispatch event"
+          ./integtest.sh
