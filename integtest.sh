@@ -113,6 +113,7 @@ echo "BROWSER_PATH: $BROWSER_PATH"
 
 # Verify if GITHUB_TOKEN is empty and if yes call groovy function to get the credentials as part of Jenkins pipeline step
 if [ -z "$GITHUB_TOKEN" ]; then
+    echo "GITHUB_TOKEN is empty. Retrieving Jenkins credentials.."
     # Run the Groovy script
     groovy auth.groovy
     export GITHUB_TOKEN="$REMOTE_GITHUB_TOKEN"

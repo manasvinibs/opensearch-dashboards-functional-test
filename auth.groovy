@@ -13,6 +13,7 @@ void getCredentails() {
             env.REMOTE_GITHUB_TOKEN = sh(script: 'echo $GITHUB_TOKEN', returnStdout: true).trim()
         }
     } catch (Exception ex) {
+        env.REMOTE_GITHUB_TOKEN = 'example-token'
         echo "Error: Unable to fetch GitHub token from Jenkins credentials. Message: ${ex.getMessage()}"
     }
 }
